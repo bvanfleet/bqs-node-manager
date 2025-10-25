@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bqs_node_manager"
+version = "0.1.0"
+description = "Python project for the bqs-node-manager system."
+authors = [
+    { name = "Bradley Van Fleet (KI7BQS)", email = "vanfleet.brad0614@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "grpcio>=1.75",
+    "grpcio-tools>=1.75",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+bqs-node-server = "bqs_node_manager.node_manager:main"
+bqs-node-client = "bqs_node_manager.node:main"
+
+[tool.setuptools.package-dir]
+bqs_node_manager = "src"
+"bqs_node_manager.common" = "src/common"
+"bqs_node_manager.data_access" = "src/data_access"
+"bqs_node_manager.mapper" = "src/mapper"
+lib = "lib"
+
+[tool.setuptools.package-data]
+"bqs_node_manager" = ["../protos/*.proto"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = 3.8
+files = "src"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+    "mypy",
+    "coverage"
+]
+
+[tool.poetry]
+packages = [
+    { include = "bqs_node_manager", from = "src" },
+    { include = "*", from = "lib" }
+]

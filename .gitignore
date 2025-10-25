@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.venv/
+.python-version
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.installed.cfg
+pip-wheel-metadata/
+*.egg
+wheels/
+share/python-wheels/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing / coverage
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+htmlcov/
+
+# PyInstaller
+*.spec
+
+# Environment files
+.env
+.env.*
+
+# Databases
+*.sqlite3
+db.sqlite3
+
+# Logs
+*.log
+
+# Editor / IDE files
+.vscode/
+*.code-workspace
+.vs/
+.idea/
+
+# Editor swap / temp files
+*~
+*.swp
+*.swo

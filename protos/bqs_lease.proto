@@ -1,0 +1,49 @@
+syntax="proto3";
+
+// Represents a request to lease a radio node.
+// Contains the callsign of the requester and an optional node ID.
+//
+// Fields:
+// - callsign: The unique identifier or callsign of the requesting entity.
+// - nodeId: (Optional) The specific node ID to lease. If not provided, the server may assign a node automatically.
+message LeaseRequest {
+    string callsign = 1;
+    optional int32 nodeId = 2;
+}
+
+// Represents a lease for a radio node in the system.
+// Contains information about the node's unique identifier, lease expiry time, and callsign.
+//
+// Fields:
+//   nodeId: Unique identifier for the radio node.
+//   expiry: Lease expiry time as a Unix timestamp (seconds).
+//   callsign: The callsign associated with the radio node.
+message Lease {
+    int32 nodeId = 1;
+    int32 expiry = 2;
+    string callsign = 3;
+}
+
+// The NodeManager service provides RPC methods for managing node leases.
+service NodeManager {
+    // Generates a lease based on the provided LeaseRequest.
+    // Parameters:
+    //   LeaseRequest: The request containing criteria for the lease.
+    // Returns:
+    //   Lease: The lease details corresponding to the request.
+    rpc GetLease (LeaseRequest) returns (Lease) {}
+
+    // Renews a lease based on the provided LeaseRequest.
+    // Parameters:
+    //   LeaseRequest: The request containing the callsign and nodeId for the lease.
+    // Returns:
+    //   Lease: The renewed lease details corresponding to the request.
+    rpc RenewLease (LeaseRequest) returns (Lease) {}
+
+    // Releases a previously acquired lease on a node.
+    // Parameters:
+    //   LeaseRequest: The request containing the callsign and nodeId for the lease.
+    // Returns:
+    //   Lease: A void lease containing the nodeId and a default expiry
+    rpc ReleaseLease (Lease) returns (Lease) {}
+}
