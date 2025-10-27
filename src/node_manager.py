@@ -1,4 +1,5 @@
 from concurrent import futures
+from datetime import datetime, timezone
 import grpc
 import logging
 
@@ -13,9 +14,11 @@ from .data_access.repository import LeaseRepository
 class NodeManager(NodeManagerServicer):
 
     __repository: LeaseRepository
+    __expiry: int
 
-    def __init__(self, repository: LeaseRepository):
+    def __init__(self, repository: LeaseRepository, expiry: int):
         self.__repository = repository
+        self.__expiry = expiry
 
     def GetLease(self, request: LeaseRequest, context) -> Lease:
         logging.info(f"Received lease request for callsign: {request.callsign} with node ID: {request.nodeId}")
@@ -26,14 +29,20 @@ class NodeManager(NodeManagerServicer):
         
         # Create a new lease if it does not exist
         logging.info(f"Requesting new lease for callsign: {request.callsign} with node ID: {request.nodeId}")
-        lease = self.__repository.create_lease(request.nodeId, request.callsign, 0)
+        lease = self.__repository.create_lease(request.nodeId, request.callsign, self.__generate_expiry())
         return LeaseMapper.to_rpc(lease)
+
 
     def RenewLease(self, request: LeaseRequest, context) -> Lease:
         raise NotImplementedError("RenewLease is not implemented.")
 
+
     def ReleaseLease(self, request: Lease, context) -> Lease:
         raise NotImplementedError("ReleaseLease is not implemented.")
+
+    
+    def __generate_expiry(self) -> int:
+        return int(datetime.now(tz=timezone.utc).timestamp()) + self.__expiry
 
 
 def serve(config, manager: NodeManager):
@@ -50,17 +59,15 @@ def serve(config, manager: NodeManager):
 
 
 def main():
+    utils.register_interrupts()
     utils.initialize_logging()
 
     logging.info("Starting Node Manager...")
     dbConfig, config = utils.initialize_config()
     repo = LeaseRepository(dbConfig)
-    manager = NodeManager(repo)
+    manager = NodeManager(repo, config['database'].get('default_expiry', utils.DAY_IN_SECONDS))
 
-    try:
-        serve(config, manager)
-    except KeyboardInterrupt:
-        logging.debug("Shutting down Node Manager.")
+    serve(config, manager)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import sqlite3 as sql
+from typing import Optional
 
 from ..common import lease as l
 from .config import Config
@@ -17,15 +18,17 @@ class BaseRepository:
 class LeaseRepository(BaseRepository):
     table_name = "leases"
 
-    def get_lease(self, node_id: int) -> l.Lease | None:
+    def get_lease(self, node_id: int) -> Optional[l.Lease]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(f"SELECT * FROM {self.table_name} WHERE node_id = ? and is_active = 1", (node_id,))
             row = cursor.fetchone()
 
-        return l.Lease(node_id=row[0], callsign=row[1], expiry=row[2], created_at=row[3], created_by=row[4],
-                       updated_at=row[5], updated_by=row[6], deleted_at=row[7], deleted_by=row[8],
-                       row_version=row[9], is_active=row[10]) if row else None
+        return l.Lease(node_id=row[0], callsign=row[1], expiry=row[2],
+                       created_at=row[3], created_by=row[4],
+                       updated_at=row[5], updated_by=row[6],
+                       deleted_at=row[7], deleted_by=row[8],
+                       is_active=row[9]) if row else None
     
 
     def create_lease(self, node_id: int, callsign: str, expiry: int) -> l.Lease:

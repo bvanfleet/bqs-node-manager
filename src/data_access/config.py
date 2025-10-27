@@ -1,9 +1,11 @@
+from typing import Optional
+
 class Config:
     db_name: str
     node_id_range_start: int
-    node_id_range_end: int | None
+    node_id_range_end: Optional[int]
 
-    def __init__(self, db_name: str, node_id_range_start: int, node_id_range_end: int | None = None):
+    def __init__(self, db_name: str, node_id_range_start: int, node_id_range_end: Optional[int] = None):
         """
         Initialize configuration for the repository.
         

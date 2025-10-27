@@ -26,7 +26,6 @@ class LeaseMapper:
             updated_by="system",
             deleted_at=None,
             deleted_by=None,
-            row_version=1,
             is_active=True
         )
     

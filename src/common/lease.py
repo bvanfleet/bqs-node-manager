@@ -20,7 +20,7 @@ class Lease(Model):
                  created_at: datetime, created_by: str,
                  updated_at: datetime, updated_by: str,
                  deleted_at: datetime, deleted_by: str,
-                 row_version: int, is_active: int):
+                 is_active: int):
         """
         Initialize a Lease object.
 
@@ -32,7 +32,7 @@ class Lease(Model):
         super().__init__(created_at, created_by,
                          updated_at, updated_by,
                          deleted_at, deleted_by,
-                         row_version, is_active)
+                         is_active)
         self.node_id = node_id
         self.expiry = expiry
         self.callsign = callsign
