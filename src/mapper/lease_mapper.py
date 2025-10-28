@@ -25,7 +25,6 @@ class LeaseMapper:
             updated_at=datetime.now(timezone.utc),
             updated_by="system",
             deleted_at=None,
-            deleted_by=None,
-            is_active=True
+            deleted_by=None
         )
     

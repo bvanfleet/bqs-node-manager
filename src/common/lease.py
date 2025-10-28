@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 from .model import Model
 
 
@@ -19,8 +20,7 @@ class Lease(Model):
     def __init__(self, node_id: int, expiry: int, callsign: str,
                  created_at: datetime, created_by: str,
                  updated_at: datetime, updated_by: str,
-                 deleted_at: datetime, deleted_by: str,
-                 is_active: int):
+                 deleted_at: Optional[datetime], deleted_by: Optional[str]):
         """
         Initialize a Lease object.
 
@@ -31,38 +31,25 @@ class Lease(Model):
         """
         super().__init__(created_at, created_by,
                          updated_at, updated_by,
-                         deleted_at, deleted_by,
-                         is_active)
+                         deleted_at, deleted_by)
         self.node_id = node_id
         self.expiry = expiry
         self.callsign = callsign
 
 
-    @property
-    def expiry_datetime(self):
-        """
-        Returns the expiry time (seconds since the epoch) as a datetime object.
-
-        Returns:
-            datetime: The expiry time as a `datetime` object.
-        """
-        return datetime.fromtimestamp(self.expiry)
-
-
-    def is_expired(self) -> bool:
+    def is_expired(self, threshold: int) -> bool:
         """
         Checks if the lease has expired based on the current time.
 
         Returns:
             bool: True if the lease has expired, False otherwise.
         """
-        return datetime.now(tz=timezone.utc) > self.expiry_datetime
+        lim = datetime.now(tz=timezone.utc).timestamp() + threshold
+        return self.expiry < lim
 
 
     def __eq__(self, other):
         if not isinstance(other, Lease):
             return False
         
-        return (self.node_id == other.node_id and
-                self.expiry == other.expiry and
-                self.callsign == other.callsign)
+        return self.node_id == other.node_id and self.callsign == other.callsign

@@ -1,24 +1,17 @@
-from datetime import datetime, timezone
 import logging
 import time
-from typing import Optional, TypeGuard
+from typing import Optional
 import grpc
 
-from lib.rpc import NodeManagerStub, LeaseRequest, Lease
+from lib.rpc import NodeManagerStub, LeaseRequest, Lease as RpcLease
 
 from . import utilities as utils
+from .fsm.lease_states import NewLeaseState
+from .mapper.lease_mapper import LeaseMapper
 from .serialization import LeaseSerializer
-    
-
-def is_lease_valid(lease: Optional[Lease], threshold: int) -> TypeGuard[Lease]:
-    if lease is None:
-        return False
-    
-    lim = datetime.now(tz=timezone.utc).timestamp() + threshold
-    return lease.expiry > lim
 
 
-def process(callsign: str, manager: NodeManagerStub) -> Optional[Lease]:
+def process(callsign: str, manager: NodeManagerStub) -> Optional[RpcLease]:
     try:
         request = LeaseRequest(callsign=callsign)
         logging.info(f"Requesting lease for callsign: {callsign}")
@@ -37,20 +30,18 @@ def main():
     _, config = utils.initialize_config()
     lease_path = config['node'].get('lease_path', 'node.lease')
 
-    while True:
-        lease = LeaseSerializer.deserialize_lease(lease_path)
-        if not is_lease_valid(lease, config['node']['lease_renewal_threshold']):
-            with grpc.insecure_channel(f"{config['rpc']['host']}:{config['rpc']['port']}") as channel:
-                manager = NodeManagerStub(channel)
-                lease = process(config['node']['callsign'], manager)
+    state = NewLeaseState()
+    lease = LeaseSerializer.deserialize_lease(lease_path)
 
-                if lease:
-                    logging.info(f"Obtained lease: Node ID = {lease.nodeId}, Callsign = {lease.callsign}, Expiration = {lease.expiry}")
-                    LeaseSerializer.serialize_lease(lease, lease_path)
-                else:
-                    logging.error("Failed to obtain lease.")
-        else:
-            logging.debug(f"Existing valid lease found: Node ID = {lease.nodeId}, Callsign = {lease.callsign}, Expiration = {lease.expiry}")
+    while True:
+        with grpc.insecure_channel(f"{config['rpc']['host']}:{config['rpc']['port']}") as channel:
+            manager = NodeManagerStub(channel)
+            lease = LeaseMapper.from_rpc(lease) if lease else None
+            state = state.process(lease, manager, **config)
+
+            if lease:
+                lease = LeaseMapper.to_rpc(lease)
+                LeaseSerializer.serialize_lease(lease, lease_path)
 
         time.sleep(config['node']['lease_refresh_interval'])
         
